@@ -1,0 +1,6 @@
+jq
+langchain-community
+langchain-core
+langchain-ollama
+PyQt6
+supabase
