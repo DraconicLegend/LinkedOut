@@ -15,7 +15,7 @@ interface CommentNodeProps {
         score?: number
     }
     level?: number
-}
+} 
 
 export default function CommentThread({ comment, level = 0 }: CommentNodeProps) {
     const [collapsed, setCollapsed] = useState(false)
