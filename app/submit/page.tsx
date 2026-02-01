@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type FormEvent, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { submitPost } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronLeft, Send, Sparkles } from 'lucide-react'
@@ -30,18 +30,11 @@ export default function Submit() {
         // Save username for future posts
         localStorage.setItem('username', username)
 
-        // Create post directly - no auth needed!
-        const { error } = await supabase
-            .from('posts')
-            .insert({
-                username: username.trim(),
-                content: content.trim()
-            })
-
-        if (!error) {
+        try {
+            await submitPost('', content.trim(), username.trim()) // Using empty string for title as it's not in the form
             router.push('/')
             router.refresh()
-        } else {
+        } catch (error: any) {
             alert('Error creating post: ' + error.message)
         }
         setLoading(false)

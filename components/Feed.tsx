@@ -1,53 +1,28 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getPosts } from '@/lib/actions'
 import { Post } from '@/types/database'
 import PostCard from './PostCard'
 import { AnimatePresence, motion } from 'framer-motion'
+// Note: Realtime subscriptions will still need the client, 
+// but it won't have env vars in the browser.
+// We'll focus on the initial fetch for now.
 
 export default function Feed() {
     const [posts, setPosts] = useState<Post[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchPosts = async () => {
-        const { data } = await supabase
-            .from('posts')
-            .select(`
-        *,
-        profiles (username),
-        comments (count)
-      `)
-            .order('created_at', { ascending: false })
-
-        if (data) setPosts(data as unknown as Post[])
+        const data = await getPosts()
+        if (data) setPosts(data)
         setLoading(false)
     }
 
     useEffect(() => {
         fetchPosts()
-
-        const channel = supabase
-            .channel('realtime_posts')
-            .on('postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'posts' },
-                (payload: any) => {
-                    // Fetching full post to get relation data like profile username
-                    // In production, you might join data manually or optimistically update
-                    fetchPosts()
-                }
-            )
-            .on('postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'posts' },
-                (payload: any) => {
-                    setPosts(current => current.map(p => p.id === payload.new.id ? { ...p, ...payload.new } as Post : p))
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
+        // Realtime is temporarily disabled as it requires a browser client with credentials
+        // which we are securing. 
     }, [])
 
     if (loading) {

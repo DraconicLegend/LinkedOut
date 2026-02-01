@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type FormEvent, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createComment } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import { MessageSquare, Send } from 'lucide-react'
 
@@ -34,24 +34,15 @@ export default function CommentInput({ postId, parentCommentId, onCommentAdded }
         // Save username for future comments
         localStorage.setItem('username', username)
 
-        // Create comment - no auth needed!
-        const { error } = await supabase
-            .from('comments')
-            .insert({
-                post_id: postId,
-                parent_comment_id: parentCommentId || null,
-                username: username.trim(),
-                content: content.trim()
-            })
-
-        if (!error) {
+        try {
+            await createComment(postId, username, content, parentCommentId)
             setContent('') // Clear the comment input
             if (onCommentAdded) {
                 onCommentAdded()
             } else {
                 router.refresh() // Refresh to show new comment
             }
-        } else {
+        } catch (error: any) {
             alert('Error posting comment: ' + error.message)
         }
         setLoading(false)
