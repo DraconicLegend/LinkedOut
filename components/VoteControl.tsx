@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowBigUp, ArrowBigDown, ChevronUp, ChevronDown } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { updateVote, getUser } from '@/lib/actions'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface VoteControlProps {
@@ -31,21 +31,16 @@ export default function VoteControl({ score: initialScore, itemId, type, initial
         setScore(newScore)
         setUserVote(newUserVote)
 
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
+        try {
+            const user = await getUser()
+            if (!user) return
 
-        if (newUserVote === 0) {
-            await supabase.from('votes').delete().match({
-                user_id: user.id,
-                [type === 'post' ? 'post_id' : 'comment_id']: itemId
-            })
-        } else {
-            await supabase.from('votes').upsert({
-                user_id: user.id,
-                post_id: type === 'post' ? itemId : null,
-                comment_id: type === 'comment' ? itemId : null,
-                value: newUserVote
-            }, { onConflict: type === 'post' ? 'user_id, post_id' : 'user_id, comment_id' })
+            await updateVote(itemId, type, newUserVote)
+        } catch (error: any) {
+            console.error('Error voting:', error)
+            // Revert optimistic update on error
+            setScore(score)
+            setUserVote(userVote)
         }
     }
 

@@ -1,8 +1,8 @@
 "use client"
 
 import { Comment } from "@/types/database"
-import { formatDistanceToNow } from "date-fns"
 import VoteControl from "./VoteControl"
+import TimeAgo from "./TimeAgo"
 import { useState } from "react"
 import { MessageSquare, Minus, Plus } from "lucide-react"
 
@@ -72,7 +72,7 @@ export default function CommentThread({ comment, level = 0 }: CommentNodeProps) 
                             className="font-mono text-secondary"
                             style={{ fontSize: '0.75rem' }}
                         >
-                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                            <TimeAgo date={comment.created_at} />
                         </span>
 
                         <button

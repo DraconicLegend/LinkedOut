@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, type FormEvent, Suspense } from 'react'
-import { supabase } from '@/lib/supabase'
+import { signInAnonymously } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import { UserPlus, Sparkles } from 'lucide-react'
 
@@ -18,15 +18,14 @@ function LoginForm() {
         setLoading(true)
         setMessage(null)
 
-        const { data, error } = await supabase.auth.signInAnonymously()
-
-        if (error) {
-            setMessage(error.message)
-            setLoading(false)
-        } else {
+        try {
+            await signInAnonymously()
             // Successfully logged in anonymously
             router.push('/setup-username')
             router.refresh()
+        } catch (error: any) {
+            setMessage(error.message)
+            setLoading(false)
         }
     }
 

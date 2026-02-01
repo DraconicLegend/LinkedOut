@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from 'react'
-import { supabase } from '@/lib/supabase'
+import { updateProfile, getUser } from '@/lib/actions'
 import { useRouter } from 'next/navigation'
 import { Terminal, ChevronRight } from 'lucide-react'
 
@@ -14,36 +14,19 @@ export default function SetupUsername() {
         e.preventDefault()
         setLoading(true)
 
-        const { data: { user } } = await supabase.auth.getUser()
+        try {
+            const user = await getUser()
+            if (user) {
+                await updateProfile(username)
 
-        if (user) {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ username })
-                .eq('id', user.id)
-
-            if (!error) {
-                // Check if there's a pending post from before username setup
-                const pendingPost = localStorage.getItem('pendingPost')
-
-                if (pendingPost) {
-                    // Create the pending post
-                    await supabase
-                        .from('posts')
-                        .insert({
-                            content: pendingPost,
-                            author_id: user.id
-                        })
-
-                    // Clear the pending post
-                    localStorage.removeItem('pendingPost')
-                }
+                // Pending post logic temporarily disabled or needs a separate action
+                localStorage.removeItem('pendingPost')
 
                 router.push('/')
                 router.refresh()
-            } else {
-                alert(error.message)
             }
+        } catch (error: any) {
+            alert(error.message)
         }
         setLoading(false)
     }

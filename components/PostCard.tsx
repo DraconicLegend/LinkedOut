@@ -2,16 +2,13 @@
 
 import Link from 'next/link'
 import { MessageSquare } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { motion } from 'framer-motion'
 import VoteControl from './VoteControl'
+import TimeAgo from './TimeAgo'
 import { Post } from '@/types/database'
 import { parsePostContent, formatTextContent } from '@/lib/formatPost'
 
 export default function PostCard({ post }: { post: Post }) {
-    const createdDate = new Date(post.created_at)
-    const timeAgo = isNaN(createdDate.getTime()) ? 'Just now' : formatDistanceToNow(createdDate, { addSuffix: true })
-
     const { title, content } = parsePostContent(post.content)
 
     return (
@@ -32,7 +29,7 @@ export default function PostCard({ post }: { post: Post }) {
                         {post.profiles?.username || 'anonymous'}.sys
                     </span>
                     <span>//</span>
-                    <span>{timeAgo}</span>
+                    <span><TimeAgo date={post.created_at} /></span>
                 </div>
 
                 {/* Title */}
